@@ -933,7 +933,6 @@ static void s2mu004_if_cable_recheck(void *mdata)
 	mutex_unlock(&muic_data->muic_mutex);
 }
 
-#if IS_ENABLED(CONFIG_HV_MUIC_S2MU004_AFC)
 static void s2mu004_muic_set_dn_ready_for_killer(struct s2mu004_muic_data *muic_data)
 {
 	struct i2c_client *i2c = muic_data->i2c;
@@ -1103,7 +1102,6 @@ static int s2mu004_if_check_usb_killer(void *mdata)
 	pr_info("%s, USB Killer is detected.", __func__);
 	return ret;
 }
-#endif
 #endif
 
 #if defined(CONFIG_HV_MUIC_S2MU004_AFC)
@@ -2904,8 +2902,8 @@ static void s2mu004_muic_init_interface(struct s2mu004_muic_data *muic_data,
 #if IS_ENABLED(CONFIG_MUIC_MANAGER)
 	muic_if->set_cable_state = s2mu004_if_set_cable_state;
 	muic_if->set_dcd_rescan = s2mu004_if_cable_recheck;
-#if IS_ENABLED(CONFIG_HV_MUIC_S2MU004_AFC)
 	muic_if->check_usb_killer = s2mu004_if_check_usb_killer;
+#if IS_ENABLED(CONFIG_HV_MUIC_S2MU004_AFC)
 	muic_if->set_afc_reset = s2mu004_if_set_afc_reset;
 	muic_if->check_id_err = s2mu004_if_check_id_err;
 	muic_if->reset_hvcontrol_reg = s2mu004_if_reset_hvcontrol_reg;
@@ -3066,12 +3064,10 @@ static int s2mu004_muic_probe(struct platform_device *pdev)
 	fb_register_client(&muic_data->fb_notifier);
 #endif
 
-#if defined(CONFIG_MUIC_SUPPORT_POWERMETER)
 	ret = muic_manager_psy_init(muic_if, &pdev->dev);
 	if (ret) {
 		pr_err("%s failed to init psy(%d)\n", __func__, ret);
 	}
-#endif
 
 	ret = s2mu004_muic_irq_init(muic_data);
 	if (ret) {

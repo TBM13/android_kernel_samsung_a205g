@@ -389,7 +389,7 @@ static int ea8076_read_id(struct lcd_info *lcd)
 		priv->lcdconnected = lcd->connected = 0;
 		dev_info(&lcd->ld->dev, "%s: connected lcd is invalid\n", __func__);
 
-		if (!lcdtype && decon)
+		if (lcdtype && decon)
 			decon_abd_save_bit(&decon->abd, BITS_PER_BYTE * LDI_LEN_ID, cpu_to_be32(lcd->id_info.value), LDI_BIT_DESC_ID);
 	}
 
@@ -1265,7 +1265,7 @@ static ssize_t enable_fd_store(struct device *dev,
 	dev_info(&lcd->ld->dev, "%s: %d\n", __func__, value);
 
 	mutex_lock(&lcd->lock);
-	decon_abd_pin_enable(decon, 0);
+	decon_abd_enable(&decon->abd, 0);
 	if (value) {
 		DSI_WRITE(SEQ_TEST_KEY_ON_F0, ARRAY_SIZE(SEQ_TEST_KEY_ON_F0));
 		DSI_WRITE(SEQ_GPARA_FD, ARRAY_SIZE(SEQ_GPARA_FD));
@@ -1278,7 +1278,7 @@ static ssize_t enable_fd_store(struct device *dev,
 		DSI_WRITE(SEQ_TEST_KEY_OFF_F0, ARRAY_SIZE(SEQ_TEST_KEY_OFF_F0));
 	}
 	msleep(120);
-	decon_abd_pin_enable(decon, 1);
+	decon_abd_enable(&decon->abd, 1);
 	mutex_unlock(&lcd->lock);
 
 	return size;
@@ -1399,7 +1399,7 @@ static ssize_t alpm_store(struct device *dev,
 	lcd->alpm = lpm;
 	mutex_unlock(&lcd->lock);
 
-	decon_abd_pin_enable(decon, 0);
+	decon_abd_enable(&decon->abd, 0);
 	switch (lpm.mode) {
 	case ALPM_OFF:
 		if (lcd->prev_brightness) {
@@ -1431,7 +1431,7 @@ static ssize_t alpm_store(struct device *dev,
 		ea8076_displayon(lcd);
 		break;
 	}
-	decon_abd_pin_enable(decon, 1);
+	decon_abd_enable(&decon->abd, 1);
 
 	unlock_fb_info(fbinfo);
 

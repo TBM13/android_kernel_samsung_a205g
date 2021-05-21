@@ -1319,10 +1319,12 @@ static bool ts_read_coord(struct bt532_ts_info *info)
 				input_report_key(info->input_dev, KEY_HOMEPAGE, 0);
 				input_sync(info->input_dev);
 				/* request from sensor team */
-				input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM2, 1);
-				input_sync(info->input_dev_proximity);
-				input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM2, 0);
-				input_sync(info->input_dev_proximity);
+				if (info->pdata->support_ear_detect) {
+					input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM2, 1);
+					input_sync(info->input_dev_proximity);
+					input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM2, 0);
+					input_sync(info->input_dev_proximity);
+				}
 
 				input_info(true, &client->dev, "AOT Doubletab\n");
 			} else {

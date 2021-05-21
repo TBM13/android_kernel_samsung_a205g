@@ -4052,6 +4052,7 @@ void regulator_unregister(struct regulator_dev *rdev)
 	device_unregister(&rdev->dev);
 }
 EXPORT_SYMBOL_GPL(regulator_unregister);
+
 #ifdef CONFIG_SEC_PM_DEBUG
 struct rdev_check_data {
 	struct regulator_dev *parent;

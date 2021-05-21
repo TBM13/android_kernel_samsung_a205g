@@ -445,8 +445,6 @@ static void s2mu106_pr_swap(void *_data, int val)
 			CCIC_NOTIFY_ID_ROLE_SWAP, 1/* source */, 0);
 	}
 	else if (val == USBPD_SOURCE_OFF) {
-		ccic_event_work(pdic_data, CCIC_NOTIFY_DEV_BATTERY,
-			CCIC_NOTIFY_ID_ATTACH, 0, 0);
 #if defined(CONFIG_DUAL_ROLE_USB_INTF)
 		pdic_data->power_role_dual = DUAL_ROLE_PROP_PR_SNK;
 #elif defined(CONFIG_TYPEC)
@@ -2750,6 +2748,7 @@ static void s2mu106_usbpd_detach_init(struct s2mu106_usbpd_data *pdic_data)
 	struct i2c_client *i2c = pdic_data->i2c;
 	int ret = 0;
 	u8 rid = 0;
+	u8 reg_data = 0;
 
 	dev_info(dev, "%s\n", __func__);
 
@@ -2778,8 +2777,15 @@ static void s2mu106_usbpd_detach_init(struct s2mu106_usbpd_data *pdic_data)
 	ret = s2mu106_usbpd_write_reg(i2c, S2MU106_REG_MSG_SEND_CON, S2MU106_REG_MSG_SEND_CON_HARD_EN);
 	s2mu106_usbpd_read_reg(i2c, S2MU106_REG_ADC_STATUS, &rid);
 	rid = (rid & S2MU106_PDIC_RID_MASK) >> S2MU106_PDIC_RID_SHIFT;
-	if (!rid)
+	if (!rid) {
 		s2mu106_self_soft_reset(i2c);
+		s2mu106_usbpd_read_reg(i2c, S2MU106_REG_PLUG_CTRL_PORT, &reg_data);
+		if ((reg_data & S2MU106_REG_PLUG_CTRL_MODE_MASK) !=
+			S2MU106_REG_PLUG_CTRL_DRP) {
+			reg_data |= S2MU106_REG_PLUG_CTRL_DRP;
+			s2mu106_usbpd_write_reg(i2c, S2MU106_REG_PLUG_CTRL_PORT, reg_data);
+		}
+	}
 	s2mu106_snk(i2c);
 	s2mu106_ufp(i2c);
 	pdic_data->rid = REG_RID_MAX;

@@ -457,8 +457,8 @@ static void stk3x3x_prox_cal(struct stk3x3x_data *ps_data)
 					, sunlight_protection_mode);
 			goto exit;
 		} else if ((ps_data->cal_status == STK3X3X_CAL_ONGOING)
-			&& (read_value > ps_data->prox_default_thd_l - 20)) {
-			SENSOR_ERR("cal failed ps_data = %d, thd l %u\n", read_value, ps_data->prox_default_thd_l);
+			&& (read_value > ps_data->prox_thd_l - 10)) {
+			SENSOR_ERR("cal failed ps_data = %d, thd l %u\n", read_value, ps_data->prox_thd_l);
 			goto exit;
 		} else if (!ps_data->first_limit_skip && (ps_data->cal_status == STK3X3X_FIRST_CAL) 
 				&& read_value > ps_data->first_cal_adc_limit) {
@@ -539,7 +539,7 @@ static void stk3x3x_work_func_pocket_read(struct work_struct *work)
 	else
 		reg_value = (uint8_t)ret;
 
-	reg_value &= (~(STK3X3X_STATE_EN_PS_MASK | STK3X3X_STATE_EN_WAIT_MASK | STK3X3X_STATE_EN_INTELL_PRST_MASK));
+		reg_value &= (~(STK3X3X_STATE_EN_PS_MASK | STK3X3X_STATE_EN_WAIT_MASK | STK3X3X_STATE_EN_INTELL_PRST_MASK));
 
 	stk3x3x_set_ps_thd(ps_data, ps_data->prox_thd_h, ps_data->prox_thd_l);
 

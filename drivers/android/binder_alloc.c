@@ -34,7 +34,6 @@
 #ifdef CONFIG_SAMSUNG_FREECESS
 #include <linux/freecess.h>
 #endif
-
 struct list_lru binder_alloc_lru;
 
 extern int system_server_pid;
@@ -347,7 +346,6 @@ static struct binder_buffer *binder_alloc_new_buf_locked(
 	void *end_page_addr;
 	size_t size, data_offsets_size;
 	int ret;
-
 #ifdef CONFIG_SAMSUNG_FREECESS
 	struct task_struct *p = NULL;
 #endif

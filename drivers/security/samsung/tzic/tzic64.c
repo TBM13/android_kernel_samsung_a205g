@@ -161,7 +161,7 @@ static long tzic_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 #endif
 
 	switch (cmd) {
-		
+
 #ifdef CONFIG_TZDEV
 	case IOCTL_IRS_CMD:
 		/* get flag id */
@@ -176,7 +176,7 @@ static long tzic_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		} else {
 			ret = tzic_flags_get(param.name);
 		}
-		
+
 	break;
 #endif /* CONFIG_TZDEV */
 
@@ -373,7 +373,7 @@ static int gotoAllCpu(void)
 }
 #endif
 
-MODULE_LICENSE("GPL v2");
+MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Samsung TZIC Driver");
 MODULE_VERSION("1.00");
 

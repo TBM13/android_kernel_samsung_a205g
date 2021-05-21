@@ -527,30 +527,38 @@ static int slsi_nan_enable_get_nl_params(struct slsi_dev *sdev, struct slsi_hal_
 			break;
 
 		case NAN_REQ_ATTR_SUBSCRIBE_SID_BEACON_VAL:
-			hal_req->subscribe_sid_beacon_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->subscribe_sid_beacon_val = (u32)val;
 			hal_req->config_subscribe_sid_beacon = 1;
 			break;
 
 		case NAN_REQ_ATTR_DW_2G4_INTERVAL:
-			hal_req->dw_2dot4g_interval_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->dw_2dot4g_interval_val = (u32)val;
 			/* valid range for 2.4G is 1-5 */
 			if (hal_req->dw_2dot4g_interval_val > 0  && hal_req->dw_2dot4g_interval_val < 5)
 				hal_req->config_2dot4g_dw_band = 1;
 			break;
 
 		case NAN_REQ_ATTR_DW_5G_INTERVAL:
-			hal_req->dw_5g_interval_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				 return -EINVAL;
+			hal_req->dw_5g_interval_val = (u32)val;
 			/* valid range for 5g is 0-5 */
 			if (hal_req->dw_5g_interval_val < 5)
 				hal_req->config_5g_dw_band = 1;
 			break;
 
 		case NAN_REQ_ATTR_DISC_MAC_ADDR_RANDOM_INTERVAL:
-			hal_req->disc_mac_addr_rand_interval_sec = nla_get_u32(iter);
+			if (slsi_util_nla_get_u32(iter, &(hal_req->disc_mac_addr_rand_interval_sec)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			hal_req->transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -608,7 +616,8 @@ int slsi_nan_enable(struct wiphy *wiphy, struct wireless_dev *wdev, const void *
 		if (ret) {
 			SLSI_ERR(sdev, "failed to enable NAN.\n");
 			reply_status = SLSI_HAL_NAN_STATUS_INTERNAL_FAILURE;
-			slsi_mlme_del_vif(sdev, dev);
+			if (slsi_mlme_del_vif(sdev, dev) != 0)
+				SLSI_NET_ERR(dev, "slsi_mlme_del_vif failed\n");
 			ndev_vif->activated = false;
 			ndev_vif->nan.service_id_map = 0;
 		} else {
@@ -667,7 +676,8 @@ int slsi_nan_disable(struct wiphy *wiphy, struct wireless_dev *wdev, const void 
 		ndev_vif = netdev_priv(dev);
 		SLSI_MUTEX_LOCK(ndev_vif->vif_mutex);
 		if (ndev_vif->activated) {
-			slsi_mlme_del_vif(sdev, dev);
+			if (slsi_mlme_del_vif(sdev, dev) != 0)
+				SLSI_NET_ERR(dev, "slsi_mlme_del_vif failed\n");
 			ndev_vif->activated = false;
 		} else {
 			SLSI_WARN(sdev, "NAN FWif not active!!");
@@ -797,20 +807,23 @@ static int slsi_nan_publish_get_nl_params(struct slsi_dev *sdev, struct slsi_hal
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA_LEN:
-			hal_req->sdea_service_specific_info_len = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->sdea_service_specific_info_len)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA:
-			memcpy(hal_req->sdea_service_specific_info, nla_data(iter),
-			       hal_req->sdea_service_specific_info_len);
+			if (slsi_util_nla_get_data(iter, hal_req->sdea_service_specific_info_len, hal_req->sdea_service_specific_info))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_RANGING_AUTO_RESPONSE:
-			hal_req->ranging_auto_response = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &(hal_req->ranging_auto_response)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			hal_req->transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -930,7 +943,8 @@ int slsi_nan_publish_cancel(struct wiphy *wiphy, struct wireless_dev *wdev,
 				return -EINVAL;
 			break;
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -1088,20 +1102,24 @@ static int slsi_nan_subscribe_get_nl_params(struct slsi_dev *sdev, struct slsi_h
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA_LEN:
-			hal_req->sdea_service_specific_info_len = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->sdea_service_specific_info_len)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA:
-			memcpy(hal_req->sdea_service_specific_info, nla_data(iter),
-			       hal_req->sdea_service_specific_info_len);
+			if (slsi_util_nla_get_data(iter, hal_req->sdea_service_specific_info_len,
+				hal_req->sdea_service_specific_info))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_RANGING_AUTO_RESPONSE:
-			hal_req->ranging_auto_response = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &(hal_req->ranging_auto_response)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			hal_req->transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -1213,7 +1231,10 @@ int slsi_nan_subscribe_cancel(struct wiphy *wiphy, struct wireless_dev *wdev, co
 			}
 			break;
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(transaction_id))) {
+				reply_status = SLSI_HAL_NAN_STATUS_INVALID_PARAM;
+				goto exit;
+			}
 			break;
 		default:
 			SLSI_ERR(sdev, "Unexpected NAN subscribecancel attribute TYPE:%d\n", type);
@@ -1297,16 +1318,19 @@ static int slsi_nan_followup_get_nl_params(struct slsi_dev *sdev, struct slsi_ha
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA_LEN:
-			hal_req->sdea_service_specific_info_len =  nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->sdea_service_specific_info_len)))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_PUBLISH_SDEA:
-			memcpy(hal_req->sdea_service_specific_info, nla_data(iter),
-			       hal_req->sdea_service_specific_info_len);
+			if (slsi_util_nla_get_data(iter, hal_req->sdea_service_specific_info_len,
+				hal_req->sdea_service_specific_info))
+				return -EINVAL;
 			break;
 
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			hal_req->transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -1613,30 +1637,39 @@ static int slsi_nan_config_get_nl_params(struct slsi_dev *sdev, struct slsi_hal_
 			break;
 
 		case NAN_REQ_ATTR_SUBSCRIBE_SID_BEACON_VAL:
-			hal_req->subscribe_sid_beacon_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->subscribe_sid_beacon_val = (u32)val;
 			hal_req->config_subscribe_sid_beacon = 1;
 			break;
 
 		case NAN_REQ_ATTR_DW_2G4_INTERVAL:
-			hal_req->dw_2dot4g_interval_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->dw_2dot4g_interval_val = (u32)val;
 			/* valid range for 2.4G is 1-5 */
 			if (hal_req->dw_2dot4g_interval_val > 0  && hal_req->dw_2dot4g_interval_val < 6)
 				hal_req->config_2dot4g_dw_band = 1;
 			break;
 
 		case NAN_REQ_ATTR_DW_5G_INTERVAL:
-			hal_req->dw_5g_interval_val = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->dw_5g_interval_val = (u32)val;
 			/* valid range for 5g is 0-5 */
 			if (hal_req->dw_5g_interval_val < 6)
 				hal_req->config_5g_dw_band = 1;
 			break;
 
 		case NAN_REQ_ATTR_DISC_MAC_ADDR_RANDOM_INTERVAL:
-			hal_req->disc_mac_addr_rand_interval_sec = nla_get_u8(iter);
+			if (slsi_util_nla_get_u8(iter, &val))
+				return -EINVAL;
+			hal_req->disc_mac_addr_rand_interval_sec = (u32)val;
 			break;
 
 		case NAN_REQ_ATTR_HAL_TRANSACTION_ID:
-			hal_req->transaction_id = nla_get_u16(iter);
+			if (slsi_util_nla_get_u16(iter, &(hal_req->transaction_id)))
+				return -EINVAL;
 			break;
 
 		default:
@@ -1824,10 +1857,15 @@ int slsi_nan_data_iface_create(struct wiphy *wiphy, struct wireless_dev *wdev, c
 
 	nla_for_each_attr(iter, data, len, tmp) {
 		type = nla_type(iter);
-		if (type == NAN_REQ_ATTR_DATA_INTERFACE_NAME)
+		if (type == NAN_REQ_ATTR_DATA_INTERFACE_NAME) {
+			/* 16 is the interface length from net_device
+			 * structure.
+			 */
+			if (nla_len(iter) > IFNAMSIZ)
+				return -EINVAL;
 			iface_name = nla_data(iter);
-		else if (type == NAN_REQ_ATTR_HAL_TRANSACTION_ID)
-			if (slsi_util_nla_get_u16(iter, &(transaction_id)))
+		} else if (type == NAN_REQ_ATTR_HAL_TRANSACTION_ID)
+			if (slsi_util_nla_get_u16(iter, &transaction_id))
 				return -EINVAL;
 	}
 	if (!iface_name) {
@@ -1894,10 +1932,15 @@ int slsi_nan_data_iface_delete(struct wiphy *wiphy, struct wireless_dev *wdev, c
 
 	nla_for_each_attr(iter, data, len, tmp) {
 		type = nla_type(iter);
-		if (type == NAN_REQ_ATTR_DATA_INTERFACE_NAME)
+		if (type == NAN_REQ_ATTR_DATA_INTERFACE_NAME) {
+			/* 16 is the interface length from net_device
+			 * structure.
+			 */
+			if (nla_len(iter) > IFNAMSIZ)
+				return -EINVAL;
 			iface_name = nla_data(iter);
-		else if (type == NAN_REQ_ATTR_HAL_TRANSACTION_ID)
-			if (slsi_util_nla_get_u16(iter, &transaction_id))
+		} else if (type == NAN_REQ_ATTR_HAL_TRANSACTION_ID)
+			if (slsi_util_nla_get_u16(iter, &(transaction_id)))
 				return -EINVAL;
 	}
 	if (!iface_name) {
@@ -1952,6 +1995,8 @@ int slsi_nan_ndp_initiate_get_nl_params(struct slsi_dev *sdev, struct slsi_hal_n
 			break;
 
 		case NAN_REQ_ATTR_MAC_ADDR_VAL:
+			if (nla_len(iter) < ETH_ALEN)
+				return -EINVAL;
 			ether_addr_copy(hal_req->peer_disc_mac_addr, nla_data(iter));
 			break;
 
